@@ -27,7 +27,7 @@ Lattice (60x40 cells, cross-section of the core):
                      it burns: the "xenon pit" that traps a low-power reactor.
   INERT (gray)       Structural filler; neutrons pass through.
 
-Control rods (15 columns, inserted from the top):
+Control rods (one per lattice unit, inserted from the top):
   Boron section (dark) absorbs both fast and thermal neutrons.
   THE FLAW: the leading 15% of each rod is a GRAPHITE DISPLACER. When a
   fully-withdrawn rod is inserted, graphite enters first, displacing

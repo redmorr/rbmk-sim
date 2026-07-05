@@ -62,11 +62,14 @@ class Reactor:
         self.time = 0.0
         self.base: list[int] = []           # current visible cell type per cell
         water = np.zeros((h, w), dtype=bool)
+        # repeating unit: graphite | water_cols water | fuel | water_cols water
+        period = 2 * (1 + cfg.water_cols)
         for iy in range(h):
             for ix in range(w):
-                if ix % 4 == 0:
+                off = ix % period
+                if off == 0:
                     c = Cell.MODERATOR
-                elif ix % 4 == 2:
+                elif off == cfg.water_cols + 1:
                     c = Cell.INERT if rng.random() < cfg.inert_fraction else Cell.FUEL
                 else:
                     c = Cell.WATER
@@ -77,8 +80,8 @@ class Reactor:
         self.heat = np.zeros((h, w), dtype=np.float32)
         self._heat_steps = 0
 
-        # rods sit in every rod_spacing-th water channel (col % 4 == 1)
-        self.rods = [Rod(col=x) for x in range(1, w, cfg.rod_spacing)]
+        # one rod per unit, in the first water channel after each graphite column
+        self.rods = [Rod(col=x) for x in range(1, w, period)]
         self.eff: list[int] = list(self.base)
 
         self.neutrons: list[Neutron] = []

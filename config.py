@@ -14,6 +14,7 @@ class Config:
     grid_w: int = 60
     grid_h: int = 40
     cell_px: int = 16
+    water_cols: int = 2               # water columns on each side of a fuel column
     inert_fraction: float = 0.20      # fraction of fuel-column cells that are inert
     seed: int = 1986
 
@@ -59,7 +60,6 @@ class Config:
     xenon_decay_s: float = 80.0       # xenon natural decay (scaled ~9.2h half-life)
 
     # --- control rods ---
-    rod_spacing: int = 4              # a rod every N columns (in water channels)
     rod_tip_fraction: float = 0.15    # graphite displacer at the leading (bottom) end
     rod_speed: float = 0.08           # manual/auto travel, fraction of core / s
     scram_speed: float = 1.0 / 18.0   # AZ-5: 18 s full travel, painfully slow
