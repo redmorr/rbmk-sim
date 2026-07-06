@@ -14,7 +14,9 @@ class Config:
     grid_w: int = 60
     grid_h: int = 40
     cell_px: int = 16
-    water_cols: int = 2               # water columns on each side of a fuel column
+    water_cols: int = 1               # water columns on each side of a fuel column
+                                      # NOTE: physics constants below are only tuned
+                                      # for 1; see "Lessons learned" in README.md
     inert_fraction: float = 0.20      # fraction of fuel-column cells that are inert
     seed: int = 1986
 
