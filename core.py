@@ -62,14 +62,14 @@ class Reactor:
         self.time = 0.0
         self.base: list[int] = []           # current visible cell type per cell
         water = np.zeros((h, w), dtype=bool)
-        # repeating unit: graphite | water_cols water | fuel | water_cols water
-        period = 2 * (1 + cfg.water_cols)
+        # repeating unit: graphite | water | fuel | water
+        period = 4
         for iy in range(h):
             for ix in range(w):
                 off = ix % period
                 if off == 0:
                     c = Cell.MODERATOR
-                elif off == cfg.water_cols + 1:
+                elif off == 2:
                     c = Cell.INERT if rng.random() < cfg.inert_fraction else Cell.FUEL
                 else:
                     c = Cell.WATER
@@ -320,32 +320,28 @@ class Reactor:
             for iy, ix in np.argwhere(cond):
                 base[iy * w + ix] = 0
 
+    @staticmethod
+    def _decay(table: dict[int, float], dt: float) -> list[int]:
+        """Tick every timer down; drop and return the cells that expired."""
+        done = []
+        for idx, t in table.items():
+            t -= dt
+            if t <= 0.0:
+                done.append(idx)
+            else:
+                table[idx] = t
+        for idx in done:
+            del table[idx]
+        return done
+
     def _update_xenon(self, dt: float) -> None:
-        if self.iodine:
-            done = []
-            for idx, t in self.iodine.items():
-                t -= dt
-                if t <= 0.0:
-                    done.append(idx)
-                else:
-                    self.iodine[idx] = t
-            for idx in done:
-                del self.iodine[idx]
-                if self.base[idx] == 2:
-                    self.base[idx] = 5
-                    self.xenon[idx] = self.cfg.xenon_decay_s
-        if self.xenon:
-            done = []
-            for idx, t in self.xenon.items():
-                t -= dt
-                if t <= 0.0:
-                    done.append(idx)
-                else:
-                    self.xenon[idx] = t
-            for idx in done:
-                del self.xenon[idx]
-                if self.base[idx] == 5:
-                    self.base[idx] = 2
+        for idx in self._decay(self.iodine, dt):
+            if self.base[idx] == 2:
+                self.base[idx] = 5
+                self.xenon[idx] = self.cfg.xenon_decay_s
+        for idx in self._decay(self.xenon, dt):
+            if self.base[idx] == 5:
+                self.base[idx] = 2
 
     def inject(self, count: int) -> None:
         """Spawn `count` fast neutrons at random positions (test/scenario helper)."""
@@ -361,15 +357,7 @@ class Reactor:
                                          math.sin(a) * cfg.fast_speed, False, x, y))
 
     def _spontaneous(self, dt: float) -> None:
-        cfg = self.cfg
-        self._spont_acc += cfg.spontaneous_rate * dt
-        rng = self.rng
+        self._spont_acc += self.cfg.spontaneous_rate * dt
         while self._spont_acc >= 1.0:
             self._spont_acc -= 1.0
-            if len(self.neutrons) >= cfg.max_neutrons:
-                break
-            x = rng.uniform(0, self.w * cfg.cell_px)
-            y = rng.uniform(0, self.h * cfg.cell_px)
-            a = rng.random() * math.tau
-            self.neutrons.append(Neutron(x, y, math.cos(a) * cfg.fast_speed,
-                                         math.sin(a) * cfg.fast_speed, False, x, y))
+            self.inject(1)

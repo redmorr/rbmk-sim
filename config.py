@@ -14,9 +14,6 @@ class Config:
     grid_w: int = 60
     grid_h: int = 40
     cell_px: int = 16
-    water_cols: int = 1               # water columns on each side of a fuel column
-                                      # NOTE: physics constants below are only tuned
-                                      # for 1; see "Lessons learned" in README.md
     inert_fraction: float = 0.20      # fraction of fuel-column cells that are inert
     seed: int = 1986
 
@@ -36,7 +33,7 @@ class Config:
     p_fission_thermal: float = 0.12   # thermal neutron in FUEL -> fission
     p_fission_fast: float = 0.001     # fast fission (tiny, RBMK is thermal)
     p_mod_thermalize: float = 0.055   # fast neutron in graphite -> thermal
-    p_tip_thermalize: float = 0.055   # graphite displacer tip, same physics
+                                      # (the rod's graphite displacer tip too)
     p_water_thermalize: float = 0.008 # liquid water moderates only weakly
     p_water_absorb: float = 0.013     # liquid water absorbs thermal neutrons
     p_steam_thermalize: float = 0.0004

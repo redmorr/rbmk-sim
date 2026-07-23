@@ -47,11 +47,9 @@ Controls:
 """
 from __future__ import annotations
 
-import argparse
-import math
-import sys
+import textwrap
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 
 import pygame
@@ -125,38 +123,31 @@ class Scenario:
     """The scripted April 26, 1986 sequence, advanced by live reactor state."""
     active: bool = False
     stage: int = 0
-    hold_timer: float = 0.0
-    done: bool = False
 
     STAGES = [
         ("1/6  Bring the reactor to full power: set TARGET to ~1500 "
          "and hold it there for a few seconds.",
-         lambda r, app: r.target_n >= 1300 and r.neutron_count > 1100),
+         lambda r: r.target_n >= 1300 and r.neutron_count > 1100),
         ("2/6  The safety test begins. Reduce TARGET power to ~200. "
          "Watch xenon (black cells) accumulate as power falls.",
-         lambda r, app: r.target_n <= 300 and r.neutron_count < 500),
+         lambda r: r.target_n <= 300 and r.neutron_count < 500),
         ("3/6  Power is sagging into the xenon pit. Press M for MANUAL and "
          "pull the rod bank nearly all the way out (UP key, below 15%).",
-         lambda r, app: not r.auto_control and r.avg_insertion < 0.15),
+         lambda r: not r.auto_control and r.avg_insertion < 0.15),
         ("4/6  Turbine coast-down: reduce PUMP power below 30%. "
          "Steam voids will start to grow.",
-         lambda r, app: r.pump_power < 0.30),
+         lambda r: r.pump_power < 0.30),
         ("5/6  Voids add reactivity — power is creeping up. When it starts "
          "to run, press A: AZ-5, the emergency shutdown.",
-         lambda r, app: r.az5_active),
+         lambda r: r.az5_active),
         ("6/6  The graphite tips enter first, adding reactivity across the "
          "whole core. 18 seconds is a very long time...",
-         lambda r, app: False),  # ends at the explosion
+         lambda r: False),  # ends at the explosion
     ]
 
     def update(self, r: Reactor) -> None:
-        if not self.active or self.done or self.stage >= len(self.STAGES):
-            return
-        _, cond = self.STAGES[self.stage]
-        if cond(r, self):
+        if self.active and self.stage < len(self.STAGES) and self.STAGES[self.stage][1](r):
             self.stage += 1
-            if self.stage >= len(self.STAGES):
-                self.done = True
 
     @property
     def text(self) -> str:
@@ -469,16 +460,7 @@ class App:
         scr.blit(surf, box.topleft)
         pygame.draw.rect(scr, (180, 160, 60), box, 1, border_radius=4)
         text = self.scenario.text or "It is 01:23:40, April 26, 1986."
-        words = text.split()
-        lines, cur = [], ""
-        for word in words:
-            if len(cur) + len(word) + 1 > 92:
-                lines.append(cur)
-                cur = word
-            else:
-                cur = f"{cur} {word}".strip()
-        lines.append(cur)
-        for i, ln in enumerate(lines[:2]):
+        for i, ln in enumerate(textwrap.wrap(text, 92)[:2]):
             scr.blit(self.font.render(ln, True, (235, 225, 180)), (box.x + 12, box.y + 8 + i * 17))
 
     def _render_explosion(self) -> None:
@@ -499,41 +481,16 @@ class App:
 
     # ------------------------------------------------------------- loop
 
-    def run(self, smoke_frames: int = 0, screenshot: str | None = None) -> None:
+    def run(self) -> None:
         running = True
-        frames = 0
         while running:
             frame_dt = min(self.clock.tick(60) / 1000.0, 0.25)
             for ev in pygame.event.get():
                 running = self.handle_event(ev)
             self.update(frame_dt)
-            alpha = min(1.0, self._acc * self.cfg.physics_hz)
-            self.render(alpha)
-            frames += 1
-            if smoke_frames and frames >= smoke_frames:
-                if screenshot:
-                    pygame.image.save(self.screen, screenshot)
-                running = False
+            self.render(min(1.0, self._acc * self.cfg.physics_hz))
         pygame.quit()
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="RBMK reactor simulation")
-    ap.add_argument("--seed", type=int, default=None, help="RNG seed (default from Config)")
-    ap.add_argument("--smoke", type=int, default=0, metavar="N",
-                    help="run N frames then exit (automated test)")
-    ap.add_argument("--screenshot", type=str, default=None,
-                    help="with --smoke: save final frame to this PNG")
-    ap.add_argument("--inject", type=int, default=0,
-                    help="inject N neutrons at start (demo/testing)")
-    args = ap.parse_args()
-
-    cfg = Config() if args.seed is None else Config(seed=args.seed)
-    app = App(cfg)
-    if args.inject:
-        app.reactor.inject(args.inject)
-    app.run(smoke_frames=args.smoke, screenshot=args.screenshot)
-
-
 if __name__ == "__main__":
-    main()
+    App(Config()).run()

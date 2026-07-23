@@ -31,9 +31,9 @@ constant lives in [config.py](config.py).
 
 ## Lessons learned: wider water channels
 
-`water_cols` in [config.py](config.py) controls how many water columns sit on
-each side of a fuel column. The physics constants are tuned for `water_cols = 1`
-only. With 2, the core is deeply subcritical (doubled water absorption) and the
+The lattice is fixed at one water column on each side of a fuel column
+(`period = 4` in [core.py](core.py)). It was briefly a `water_cols` config knob;
+with 2, the core is deeply subcritical (doubled water absorption) and the
 constants cannot be rescued within realistic ranges: an automated tuner
 ([tune.py](tune.py), kept for reference) ran feedback-controlled searches against
 the staged checks and got 4 of 5 stages passing, but never the xenon-pit stage.

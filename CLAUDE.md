@@ -7,8 +7,10 @@
 - **Do not pursue procedural/automated tuning of the physics constants again**
   (user decision, 2026-07-06). `tune.py` is committed as reference only — do not
   extend it or wire it into anything.
-- `water_cols` must stay 1 unless the physics constants are re-derived. The
-  committed constants only sustain the scenario at that geometry.
+- The lattice `period = 4` in `core.py` (one water column per side) must not
+  change unless the physics constants are re-derived. The committed constants
+  only sustain the scenario at that geometry. The old `water_cols` config knob
+  was removed for this reason; `tune.py` still references it and no longer runs.
 
 ## Lessons from the tuning experiment (7 overnight runs, 2026-07-06)
 

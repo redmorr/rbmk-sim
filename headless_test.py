@@ -20,7 +20,7 @@ from core import Reactor
 DT = 1.0 / 120.0
 
 
-def run(r: Reactor, seconds: float, label: str = "", report_every: float = 0.0) -> None:
+def run(r: Reactor, seconds: float, report_every: float = 0.0) -> None:
     steps = int(seconds / DT)
     next_report = r.time + report_every
     for _ in range(steps):
@@ -29,7 +29,7 @@ def run(r: Reactor, seconds: float, label: str = "", report_every: float = 0.0) 
             next_report += report_every
             print(f"  t={r.time:6.1f}s  n={r.neutron_count:5d}  heat={r.avg_heat:.3f}  "
                   f"steam={r.steam_fraction * 100:4.1f}%  Xe={r.xenon_count:3d}  "
-                  f"rods={r.avg_insertion * 100:4.1f}%  {label}")
+                  f"rods={r.avg_insertion * 100:4.1f}%")
 
 
 def mean_count(r: Reactor, seconds: float) -> float:
