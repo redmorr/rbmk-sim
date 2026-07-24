@@ -18,6 +18,18 @@ Press **S** for the guided "April 26, 1986" scenario. Full mechanics documentati
 is in the module docstring of [reactor_sim.py](reactor_sim.py); every tunable
 constant lives in [config.py](config.py).
 
+## Run in a browser
+
+```
+pip install pygbag
+python web/build_web.py
+```
+
+Compiles the sim to WebAssembly with the pygame-web CDN vendored locally, so
+the deployed page makes no third-party requests. Runs at real time in Chrome.
+See [web/README.md](web/README.md) — the build has several non-obvious
+requirements that each fail silently.
+
 ## Controls
 
 | Input | Action |

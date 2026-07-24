@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .venv/
 .idea/
+
+web/build/
+web/dist/
+web/.cdn-cache/
+web/probe.png

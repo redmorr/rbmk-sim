@@ -12,6 +12,19 @@
   only sustain the scenario at that geometry. The old `water_cols` config knob
   was removed for this reason; `tune.py` still references it and no longer runs.
 
+## Web build (pygbag / WASM)
+
+- `py web/build_web.py` produces a self-hosted browser build; verify it with
+  `py web/probe.py <url>`, never by eye alone.
+- **Read `web/README.md` before touching anything under `web/`.** Five distinct
+  failure modes there all produce an identical grey canvas with no traceback,
+  no console error and no exception, and they stack. The short version:
+  `--PYBUILD 3.13` (cp312's numpy is the wrong ABI), numpy must be named in the
+  entry script (pygbag preloads by scanning it), `set_mode()` must happen inside
+  the async main, CDN paths must be root-absolute, and wheels need `PYGPI` on
+  top of `config.cdn`.
+- The web build patches a staged *copy*; `reactor_sim.py` stays sync for desktop.
+
 ## Lessons from the tuning experiment (7 overnight runs, 2026-07-06)
 
 - At `water_cols = 2` the core is deeply subcritical; recovering criticality
